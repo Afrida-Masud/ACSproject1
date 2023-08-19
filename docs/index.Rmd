@@ -1,5 +1,5 @@
 ---
-title: "Cleaning Data"
+title: "Data Cleaning and Visualization with American Community Survey Data Set"
 author: "Afrida Masud"
 date: "2023-08-18"
 output: html_document
