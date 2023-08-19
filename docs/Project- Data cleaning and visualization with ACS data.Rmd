@@ -1,0 +1,196 @@
+---
+title: "Cleaning Data"
+author: "Afrida Masud"
+date: "2023-08-18"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Goal of the Project: 
+The goal of the project is to work with American Community Survey (ACS) Dataset.
+
+1. Creating a histogram of Salary income past 12 months for Civilian Employed, at work
+2. Create a table that reports the median, mean of "Wages or salary income past 12 months" for different categories
+3. Creating a bar graph for median income of each category
+4. Show Relationship between age and income for working age individuals through scatter plot
+
+## Downloading and Loading the dataset in R
+**Getting the list of files from the URL:** One can do it manually by going to the website, find the desired file name and download it to the working directory. However, I like to see the name of the files from R-markdown mainly because if I decide to work with different dataset, I can simply download from R without repeating the process mentioned earlier. 
+If we see the Links with view function, we can see that the files are mainly zip files. So, the next step would be to get the list of zip files. 
+
+```{r message=FALSE, warning=FALSE}
+setwd("C:/Users/USER/OneDrive - IL State University/Micro with R")
+library(rvest)
+library(httr)
+library(XML)
+library(tidyverse)
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(scales)
+library(officer)
+library(RColorBrewer)
+theme_set(theme_bw(16))
+url <- "https://www2.census.gov/programs-surveys/acs/data/pums/2021/1-Year/"
+pAGEPContent <- readLines(url)
+Links <- getHTMLLinks(pAGEPContent)
+view(Links)
+zipFiles <- grep("\\.zip", Links)
+Links[zipFiles]
+```
+**Downloading the desired Zip File:** In the second step we will download the zip file and unzip it in my directory.I will use personal level data of North Carolina State. But feel free to use any state you like.
+
+```{r message=FALSE, warning=FALSE}
+# download.file("https://www2.census.gov/programs-surveys/acs/data/pums/2021/1-Year/csv_pnc.zip", "csv_pnc.zip")
+# unzip("csv_pnc.zip")
+```
+
+**Import the dataset into R:** Using the following code you can see the name of excel file that has been unzipped from the second step without even leaving R. If there were no other excel file in your working directory you will only see "psam_p37.csv" file in your directory. 
+
+```{r message=FALSE, warning=FALSE}
+print(list.files(pattern = "\\.xlsx$|\\.xls$|\\.csv$"))
+data <- read.csv("psam_p37.csv")
+save(data, file = "main.Rdta")
+# load("main.Rdata")
+# View(data)
+```
+
+After loading the data set into R, we can begin executing our objectives.
+
+## Goal 1 : Creating a histogram of Salary income past 12 months for Civilian Employed, at work
+
+ACS data set comes with data dictionary that can be found in "https://www2.census.gov/programs-surveys/acs/tech_docs/pums/data_dict/PUMS_Data_Dictionary_2021.pdf". To create histogram of Salary income for civilian employed at work, we need wage and employment. From the data dictionary we can see that ESR=1 is Civilian employed, at work and WAGP is the data for Wages or salary income past 12 months. 
+
+```{r message=FALSE, warning=FALSE}
+filtered_data <- subset(data, ESR == 1, select = WAGP)
+#Histogram with ggplot
+ggplot(filtered_data, aes(x = WAGP)) +
+  geom_histogram(binwidth = 10000, fill = "#2e7bb4", color = "#FFFFFF", alpha = 0.8) +
+  labs(x = "Salary Income", y = "Frequency") +
+  ggtitle("Histogram of Salary Income") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 10, face = "bold", hjust=.5),
+        axis.text = element_text(size = 10 ,margin = margin(0, 0, 0, 0)),
+        axis.title = element_text(size = 10, face = "bold"),
+        # panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+        # panel.border = element_rect(colour = "black",fill=NA, linewidth  =.5))
+```
+
+## Goal 2 : Create a table that reports the median, mean of "Wages or salary income past 12 months" for different categories:
+In this section I will create a table with the median and mean of “Wages or salary income past 12 months” for the following subgroups including a column with the number of observations for each group. 
+
+*	Age 18-64 (i.e., “working age”)
+*	Age 18-64 & male
+*	Age 18-64 & female 
+* Age 18-64 with a college degree 
+* Age 18-64 with a college degree in Economics
+
+```{r message=FALSE, warning=FALSE}
+# Filter the data for each subgroup and calculate the median, mean, and count
+AGEP_group <- data %>%
+  filter(AGEP >= 18 & AGEP <= 64) %>%
+  summarize(Median = median(WAGP, na.rm = TRUE),
+            Mean = mean(WAGP, na.rm = TRUE),
+            Count = n())
+
+SEX_group <- data %>%
+  filter(AGEP >= 18 & AGEP <= 64, SEX == 1) %>%
+  summarize(Median = median(WAGP, na.rm = TRUE),
+            Mean = mean(WAGP, na.rm = TRUE),
+            Count = n())
+
+female_group <- data %>%
+  filter(AGEP >= 18 & AGEP <= 64, SEX == 2) %>%
+  summarize(Median = median(WAGP, na.rm = TRUE),
+            Mean = mean(WAGP, na.rm = TRUE),
+            Count = n())
+
+college_group <- data %>%
+  filter(AGEP >= 18 & AGEP <= 64, SCHL >= 20 & SCHL <= 21) %>%
+  summarize(Median = median(WAGP, na.rm = TRUE),
+            Mean = mean(WAGP, na.rm = TRUE),
+            Count = n())
+
+economics_group <- data %>%
+  filter(AGEP >= 18 & AGEP <= 64, SCHL >= 20 & SCHL <= 21, FOD1P== 5501) %>%
+  summarize(Median = median(WAGP, na.rm = TRUE),
+            Mean = mean(WAGP, na.rm = TRUE),
+            Count = n())
+
+# Combine the subgroup summaries into a single data frame
+result_table <- bind_rows(AGEP_group, SEX_group, female_group, college_group, economics_group)
+
+# Assign row names to the table
+result_table$Name <- c("AGEP 18-64", "AGEP 18-64 & Male", "AGEP 18-64 & Female", "AGEP 18-64 with College Degree", "AGEP 18-64 with College Degree in Economics")
+# Print the resulting table
+result_table <- result_table[,c(4,1,2,3)]
+print(result_table)
+# Create a Word document
+doc <- read_docx()
+# Add the table to the document
+doc <- body_add_table(doc, result_table)
+# Save the Word document
+print(doc, target = "result_table.docx")
+```
+
+
+## Goal 3: Creating a bar graph for median income of each category
+
+Here I will first create a custom x-axis labels for the x-axis that will be the categories mentioned above. The table that I have created earlier have names that will take much space in the x-axis of the graph. So it is better to have a customized name that will be self explanatory as well as won't take much space in the graph. I also want each bar to be of different colors. So I will use the RColorBrewer package.
+
+```{r message=FALSE , warning=FALSE}
+library(RColorBrewer)
+# Define custom x-axis labels
+custom_x_labels <- c("Age 18-64", "Female", "Male", "College Degree", "Economics Degree")
+# Creating the Bar Plot 
+  ggplot(result_table, aes(x = Name, y = Median, fill=Name)) +
+  geom_col() +
+  geom_text(aes(label = Median), vjust = -0.3, color = "black", size = 4) +
+  scale_x_discrete(labels = custom_x_labels) +
+  labs(x = "Subgroup", y = "Median Wage") +
+  ggtitle("Median Wage") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 18, face = "bold",hjust = .5 ),
+        axis.text.x = element_text(angle = 90, hjust = 1),
+        axis.text = element_text(size = 10),
+        axis.title = element_text(size = 9, face = "bold"),
+        legend.position = "none")+
+  scale_fill_brewer(palette = "Accent")
+# # Save the plot as a JPEG file
+# ggsave("barplot.jpeg", plot = barplot, width = 8, height = 6, dpi = 300)
+```
+
+## Goal 4: Show Relationship between age and income for working age individuals through scatter plot
+Here I will create a scatter plot showing the relationship between age and income for working age individuals. The same plot will include the relationship for male and female separately. 
+
+
+You can also embed plots, for example:
+
+```{r message=FALSE , warning=FALSE}
+# Creating the dataset
+medianincome_by_age <- data %>% filter(AGEP >= 18 & AGEP <= 64) %>% group_by(AGEP) %>% summarize(Median = median(WAGP, na.rm = TRUE))
+# Both Male and Female Median Income
+medianincome_by_age <- data %>% filter(AGEP >= 18 & AGEP <= 64) %>% group_by(AGEP) %>% summarize(Median = median(WAGP, na.rm = TRUE))
+medianincome_by_age$Group <- "Both"
+## Male Median Income
+medianincome_by_male <- data %>% filter(AGEP >= 18 & AGEP <= 64, SEX==1) %>% group_by(AGEP) %>% summarize(Median = median(WAGP, na.rm = TRUE))
+medianincome_by_male$Group <- "Male"
+## Female Median Income
+medianincome_by_female <- data %>% filter(AGEP >= 18 & AGEP <= 64, SEX==2) %>% group_by(AGEP) %>% summarize(Median = median(WAGP, na.rm = TRUE))
+medianincome_by_female$Group <- "Female"
+# Scatter plot for the relationship between age and working age individual
+  ggplot() + geom_point(data= medianincome_by_age, aes(x = AGEP, y = Median,col=Group),size=3) +
+  geom_point(data=medianincome_by_male, aes(x = AGEP, y = Median,col=Group), size=3)+
+    geom_point(data=medianincome_by_female, aes(x = AGEP, y = Median,col=Group), size=3)+
+  labs(x="Age",y="Median Income", color="Groups")+
+     scale_color_manual(values = c("Both" = "blue", "Male" = "red", "Female"="Green")) +  
+  ggtitle ("Relationship between age and Median Income")+
+  theme(plot.title = element_text(size=10, hjust = .5),
+        axis.title = element_text(size=9),
+        legend.position = "bottom")
+```
+
