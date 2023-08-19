@@ -44,8 +44,8 @@ Links[zipFiles]
 **Downloading the desired Zip File:** In the second step we will download the zip file and unzip it in my directory.I will use personal level data of North Carolina State. But feel free to use any state you like.
 
 ```{r message=FALSE, warning=FALSE}
-# download.file("https://www2.census.gov/programs-surveys/acs/data/pums/2021/1-Year/csv_pnc.zip", "csv_pnc.zip")
-# unzip("csv_pnc.zip")
+download.file("https://www2.census.gov/programs-surveys/acs/data/pums/2021/1-Year/csv_pnc.zip", "csv_pnc.zip")
+unzip("csv_pnc.zip")
 ```
 
 **Import the dataset into R:** Using the following code you can see the name of excel file that has been unzipped from the second step without even leaving R. If there were no other excel file in your working directory you will only see "psam_p37.csv" file in your directory. 
