@@ -10,16 +10,21 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Goal of the Project: 
-The goal of the project is to work with American Community Survey (ACS) Dataset.
+This project's goal is to explore the American Community Survey (ACS) dataset. The USA Census Bureau publishes this dataset every year. The ACS data comprises a multitude of demographic, economic, personal, and household data relating to individuals. To learn more about this data set visit "https://www.census.gov/programs-surveys/acs". 
 
-1. Creating a histogram of Salary income past 12 months for Civilian Employed, at work
+This project has been a part of my Microeconometrics course.  Dr. Timothy Harris created this problem set to help the class learn STATA. However, I will use his problem set and solve it in R in this project. 
+
+I will do the following- 
+1. Create a histogram of Salary income past 12 months for Civilian Employed, at work
 2. Create a table that reports the median, mean of "Wages or salary income past 12 months" for different categories
-3. Creating a bar graph for median income of each category
-4. Show Relationship between age and income for working age individuals through scatter plot
+3. Create a bar graph for the median income of each category
+4. Show the Relationship between age and income for working-age individuals through a scatter plot
 
 ## Downloading and Loading the dataset in R
-**Getting the list of files from the URL:** One can do it manually by going to the website, find the desired file name and download it to the working directory. However, I like to see the name of the files from R-markdown mainly because if I decide to work with different dataset, I can simply download from R without repeating the process mentioned earlier. 
-If we see the Links with view function, we can see that the files are mainly zip files. So, the next step would be to get the list of zip files. 
+
+**Getting the list of files from the URL:** 
+You can manually achieve this by visiting the website, locating the specific file, and then downloading it to the working directory. I prefer to access the files directly from R Markdown. This way, if I decide to switch to a different dataset, I can download it from within R, eliminating the need to repeat the manual process.
+By utilizing the view function to examine the links, you'll notice that the files primarily come in the form of zip files. Links[zipfiles] will show the name of the zip files. I commented it out as the list is long. The next logical step would involve extracting a list of these zip files.
 
 ```{r message=FALSE, warning=FALSE}
 setwd("C:/Users/USER/OneDrive - IL State University/Micro with R")
@@ -39,16 +44,18 @@ pAGEPContent <- readLines(url)
 Links <- getHTMLLinks(pAGEPContent)
 view(Links)
 zipFiles <- grep("\\.zip", Links)
-Links[zipFiles]
+#Links[zipFiles]
 ```
-**Downloading the desired Zip File:** In the second step we will download the zip file and unzip it in my directory.I will use personal level data of North Carolina State. But feel free to use any state you like.
+**Downloading the desired Zip File:**
+I'll be utilizing personal-level data from North Carolina State. But feel free to substitute any other state's data of your preference. From the list "csv_pnc.zip" is the data of interest. Here, "p" refers to the personal level, and "NC" refers to North Carolina. The following code helps download the zip file and extract its contents into my designated directory. 
 
 ```{r message=FALSE, warning=FALSE}
 download.file("https://www2.census.gov/programs-surveys/acs/data/pums/2021/1-Year/csv_pnc.zip", "csv_pnc.zip")
 unzip("csv_pnc.zip")
 ```
 
-**Import the dataset into R:** Using the following code you can see the name of excel file that has been unzipped from the second step without even leaving R. If there were no other excel file in your working directory you will only see "psam_p37.csv" file in your directory. 
+**Loading the Dataset into R:** 
+With the provided code snippet, you can see the name of the Excel file extracted from the previous step, all from within R. This process eliminates the need to exit R. Assuming there are no other Excel files present in your working directory, you will solely encounter the "psam_p37.csv" file in your directory.
 
 ```{r message=FALSE, warning=FALSE}
 print(list.files(pattern = "\\.xlsx$|\\.xls$|\\.csv$"))
@@ -60,9 +67,9 @@ save(data, file = "main.Rdta")
 
 After loading the data set into R, we can begin executing our objectives.
 
-## Goal 1 : Creating a histogram of Salary income past 12 months for Civilian Employed, at work
+## Goal 1 : Create a histogram of Salary income past 12 months for Civilian Employed, at work
 
-ACS data set comes with data dictionary that can be found in "https://www2.census.gov/programs-surveys/acs/tech_docs/pums/data_dict/PUMS_Data_Dictionary_2021.pdf". To create histogram of Salary income for civilian employed at work, we need wage and employment. From the data dictionary we can see that ESR=1 is Civilian employed, at work and WAGP is the data for Wages or salary income past 12 months. 
+ACS data set comes with a data dictionary that can be found at "https://www2.census.gov/programs-surveys/acs/tech_docs/pums/data_dict/PUMS_Data_Dictionary_2021.pdf". We need wage and employment data to create a histogram of Salary income for civilian employed at work, From the data dictionary, we can see that ESR=1 is Civilian employed.  The "WAGP" variable contains salary income information. 
 
 ```{r message=FALSE, warning=FALSE}
 filtered_data <- subset(data, ESR == 1, select = WAGP)
@@ -81,7 +88,7 @@ ggplot(filtered_data, aes(x = WAGP)) +
 ```
 
 ## Goal 2 : Create a table that reports the median, mean of "Wages or salary income past 12 months" for different categories:
-In this section I will create a table with the median and mean of “Wages or salary income past 12 months” for the following subgroups including a column with the number of observations for each group. 
+In this section, I will create a table with the median and mean of salary for the following subgroups. The table will also include a column with the number of observations for each group. 
 
 *	Age 18-64 (i.e., “working age”)
 *	Age 18-64 & male
@@ -138,9 +145,9 @@ print(doc, target = "result_table.docx")
 ```
 
 
-## Goal 3: Creating a bar graph for median income of each category
+## Goal 3: Creating a bar graph for the median income of each category
 
-Here I will first create a custom x-axis labels for the x-axis that will be the categories mentioned above. The table that I have created earlier have names that will take much space in the x-axis of the graph. So it is better to have a customized name that will be self explanatory as well as won't take much space in the graph. I also want each bar to be of different colors. So I will use the RColorBrewer package.
+First, I create personalized x-axis labels corresponding to the five categories discussed earlier. Given that the table I previously generated contains names that could potentially occupy significant space on the x-axis of the graph, opting for succinct yet descriptive custom labels seems prudent. Second, I want to ensure each bar in the histogram stands out uniquely in terms of color. I am utilizing the RColorBrewer package for this color management. This approach will enhance both readability and visual appeal of the histogram.
 
 ```{r message=FALSE , warning=FALSE}
 library(RColorBrewer)
@@ -164,11 +171,10 @@ custom_x_labels <- c("Age 18-64", "Female", "Male", "College Degree", "Economics
 # ggsave("barplot.jpeg", plot = barplot, width = 8, height = 6, dpi = 300)
 ```
 
-## Goal 4: Show Relationship between age and income for working age individuals through scatter plot
-Here I will create a scatter plot showing the relationship between age and income for working age individuals. The same plot will include the relationship for male and female separately. 
+## Goal 4: Show the relationship between age and income for working-age individuals through a scatter plot
 
+Here, I create a scatter plot showing the relationship between age and income for working-age individuals.  The plot will further segment the data, differentiating between male and female categories. We will be able to visually comprehend the distinct age-income dynamics for each gender group.
 
-You can also embed plots, for example:
 
 ```{r message=FALSE , warning=FALSE}
 # Creating the dataset
@@ -188,7 +194,7 @@ medianincome_by_female$Group <- "Female"
     geom_point(data=medianincome_by_female, aes(x = AGEP, y = Median,col=Group), size=3)+
   labs(x="Age",y="Median Income", color="Groups")+
      scale_color_manual(values = c("Both" = "blue", "Male" = "red", "Female"="Green")) +  
-  ggtitle ("Relationship between age and Median Income")+
+  ggtitle ("Relationship between Age and Median Income")+
   theme(plot.title = element_text(size=10, hjust = .5),
         axis.title = element_text(size=9),
         legend.position = "bottom")
