@@ -15,6 +15,7 @@ This project's goal is to explore the American Community Survey (ACS) dataset. T
 This project has been a part of my Microeconometrics course.  Dr. Timothy Harris created this problem set to help the class learn STATA. However, I will use his problem set and solve it in R in this project. 
 
 I will do the following- 
+
 1. Create a histogram of Salary income past 12 months for Civilian Employed, at work
 2. Create a table that reports the median, mean of "Wages or salary income past 12 months" for different categories
 3. Create a bar graph for the median income of each category
