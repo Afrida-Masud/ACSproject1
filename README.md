@@ -10,3 +10,4 @@ I will do the following-
 2. Create a table that reports the median, mean of "Wages or salary income past 12 months" for different categories
 3. Create a bar graph for the median income of each category
 4. Show the Relationship between age and income for working-age individuals through a scatter plot
+Check the whole project here - "https://afrida-masud.github.io/ACSproject1/"
